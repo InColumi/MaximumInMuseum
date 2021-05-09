@@ -3,6 +3,7 @@
 #include <time.h>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 class Time
 {
@@ -10,6 +11,7 @@ private:
 	size_t _hour;
 	size_t _minute;
 	size_t _second;
+	std::string _description; // start or end
 
 	bool IsCorrectHours(size_t hour)
 	{
@@ -33,13 +35,14 @@ public:
 	Time(): _hour(size_t()), _minute(size_t()), _second(size_t())
 	{}
 
-	Time(size_t hour, size_t minute, size_t second)
+	Time(size_t hour, size_t minute, size_t second, std::string description)
 	{
 		if(IsCorrectHours(hour) && IsCorrectMinutes(minute) && IsCorrectMinutes(second))
 		{
 			_hour = hour;
 			_minute = minute;
 			_second = second;
+			_description = description;
 		}
 		else
 		{
@@ -61,48 +64,108 @@ public:
 	{
 		if(_hour > t._hour)
 		{
+			return true;
+		}
+		else if(_hour < t._hour)
+		{
+			return false;
+		}
+		else
+		{
 			if(_minute > t._minute)
+			{
+				return true;
+			}
+			else if(_minute < t._minute)
+			{
+				return false;
+			}
+			else
 			{
 				return _second > t._second;
 			}
 		}
-		return  false;
 	}
 
 	bool operator < (Time t)
 	{
 		if(_hour < t._hour)
 		{
+			return true;
+		}
+		else if(_hour > t._hour)
+		{
+			return false;
+		}
+		else
+		{
 			if(_minute < t._minute)
+			{
+				return true;
+			}
+			else if(_minute > t._minute)
+			{
+				return false;
+			}
+			else
 			{
 				return _second < t._second;
 			}
 		}
-		return  false;
 	}
 
 	bool operator <= (Time t)
 	{
-		if(_hour <= t._hour)
+		if(_hour < t._hour)
 		{
-			if(_minute <= t._minute)
+			return true;
+		}
+		else if(_hour > t._hour)
+		{
+			return false;
+		}
+		else
+		{
+			if(_minute < t._minute)
+			{
+				return true;
+			}
+			else if(_minute > t._minute)
+			{
+				return false;
+			}
+			else
 			{
 				return _second <= t._second;
 			}
 		}
-		return  false;
 	}
 
 	bool operator >= (Time t)
 	{
-		if(_hour >= t._hour)
+		if(_hour > t._hour)
 		{
-			if(_minute >= t._minute)
+			return true;
+		}
+		else if(_hour < t._hour)
+		{
+			return false;
+		}
+		else
+		{
+			if(_minute > t._minute)
+			{
+				return true;
+			}
+			else if(_minute < t._minute)
+			{
+				return false;
+			}
+			else
 			{
 				return _second >= t._second;
 			}
 		}
-		return  false;
 	}
 
 	void ShowInfo()
@@ -115,6 +178,7 @@ public:
 		std::cout << ":";
 		ShowZeroIf(_second);
 		std::cout << _second;
+		std::cout << " " << _description << '\n';
 	}
 
 	size_t GetHour()
@@ -125,6 +189,11 @@ public:
 	size_t GetMinutes()
 	{
 		return _minute;
+	}
+
+	std::string GetDescription()
+	{
+		return _description;
 	}
 };
 
@@ -193,7 +262,7 @@ bool IsCorrectExtention(std::string& filename, std::string  extention = ".txt")
 }
 
 //00:00:00
-Time StringToTime(std::string s)
+Time StringToTime(std::string s, std::string description)
 {
 	std::string hour = "";
 	hour += s[0];
@@ -207,37 +276,123 @@ Time StringToTime(std::string s)
 	sec += s[6];
 	sec += s[7];
 
-	return Time(stoi(hour), stoi(min), stoi(sec));
+	return Time(stoi(hour), stoi(min), stoi(sec), description);
 }
 
-std::vector<Pair> ParseFromFile(std::ifstream& outFile)
+std::vector<Time> ParseFromFile(std::ifstream& outFile)
 {
 	std::string line;
-	std::vector<Pair> times;
-	Time come;
-	Time leave;
+	std::vector<Time> times;
 	std::string timeInStr = "";
-
+	size_t size;
 	while(std::getline(outFile, line))
 	{
-		for(size_t i = 0; i < line.size(); i++)
+		size = line.size() - 1;
+		for(size_t i = 0; i <= size; i++)
 		{
-			if(line[i] != ' ')
+			if(line[i] == ' ')
 			{
-				timeInStr += line[i];
+				times.push_back(StringToTime(timeInStr, "start"));
+				timeInStr.clear();
+			}
+			else if(i == size)
+			{
+				times.push_back(StringToTime(timeInStr, "end"));
+				timeInStr.clear();
 			}
 			else
 			{
-				come = StringToTime(timeInStr);
-				timeInStr.clear();
+				timeInStr += line[i];
 			}
 		}
-		leave = StringToTime(timeInStr);
-		times.push_back(Pair(come, leave));
-		timeInStr.clear();
 	}
 	outFile.close();
 	return times;
+}
+
+bool IsMax(Time value, Time max)
+{
+	return value > max;
+}
+
+bool IsMin(Time value, Time min)
+{
+	return value < min;
+}
+
+void FindMinMaxCome(std::vector<Pair> pairs, bool (*Compere)(Time, Time))
+{
+	Time minMax = pairs[0].GetCome();
+	for(size_t i = 1; i < pairs.size(); i++)
+	{
+		if(Compere(pairs[i].GetCome(), minMax))
+		{
+			minMax = pairs[i].GetCome();
+		}
+	}
+
+	minMax.ShowInfo();
+	std::cout << '\n';
+}
+
+void Sort(std::vector<Time>& times)
+{
+	size_t size = times.size();
+	Time temp;
+	for(int i = 0; i < size - 1; i++)
+	{
+		for(int j = 0; j < size - i - 1; j++)
+		{
+			if(times[j] > times[j + 1])
+			{
+
+
+				// меняем элементы местами
+				temp = times[j];
+				times[j] = times[j + 1];
+				times[j + 1] = temp;
+			}
+		}
+	}
+}
+
+void FindMaxInMuseum(std::vector<Time>& times)
+{
+	/*for(size_t i = 0; i < times.size(); i++)
+	{
+		times[i].ShowInfo();
+	}*/
+	Sort(times);
+	std::cout << '\n';
+	for(size_t i = 0; i < times.size(); i++)
+	{
+		times[i].ShowInfo();
+	}
+	int countCustomers = 0;
+	int maxCounCustomers = 0;
+	for(size_t i = 0; i < times.size(); i++)
+	{
+		if(times[i].GetDescription() == "start")
+		{
+			countCustomers++;
+		}
+		else if(times[i].GetDescription() == "end")
+		{
+			countCustomers--;
+		}
+		else
+		{
+			throw "В описании может быть start or end!\n";
+		}
+
+		if(countCustomers > maxCounCustomers)
+		{
+			maxCounCustomers = countCustomers;
+		}
+	}
+
+	std::cout << maxCounCustomers << std::endl;
+
 }
 
 void ReadFromFile()
@@ -249,8 +404,8 @@ void ReadFromFile()
 	{
 		std::cout << "Введите имя файла с раширением txt\n";
 		std::cout << "Пример верного файла с расширением: input.txt\n";
-		std::cin >> input;
-
+		//std::cin >> input;
+		input = "1.txt";
 		if(IsCorrectExtention(input))
 		{
 			outFile.open(input);
@@ -259,11 +414,8 @@ void ReadFromFile()
 				system("cls");
 				try
 				{
-					std::vector<Pair> times = ParseFromFile(outFile);
-					for(size_t i = 0; i < times.size(); i++)
-					{
-						times[i].ShowInfo();
-					}
+					std::vector<Time> times = ParseFromFile(outFile);
+					FindMaxInMuseum(times);
 				}
 				catch(const char* str)
 				{
