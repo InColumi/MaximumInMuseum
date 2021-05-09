@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include "MaximumInMuseum.h"
 
 class Time
 {
@@ -177,8 +178,7 @@ public:
 		std::cout << _minute;
 		std::cout << ":";
 		ShowZeroIf(_second);
-		std::cout << _second;
-		std::cout << " " << _description << '\n';
+		std::cout << _second << std::endl;
 	}
 
 	size_t GetHour()
@@ -194,50 +194,6 @@ public:
 	std::string GetDescription()
 	{
 		return _description;
-	}
-};
-
-class Pair
-{
-private:
-	Time _come;
-	Time _getOut;
-
-public:
-	Pair(): _come(Time()), _getOut(Time())
-	{}
-
-	Pair(Time come, Time getOut)
-	{
-		if(come >= getOut)
-		{
-			come.ShowInfo(); std::cout << '\n';
-			getOut.ShowInfo(); std::cout << '\n';
-			throw "Время прихода больше или равно чем время ухода!\n";
-		}
-		else
-		{
-			_come = come;
-			_getOut = getOut;
-		}
-	}
-
-	void ShowInfo()
-	{
-		_come.ShowInfo();
-		std::cout << ' ';
-		_getOut.ShowInfo();
-		std::cout << '\n';
-	}
-
-	Time GetCome()
-	{
-		return _come;
-	}
-
-	Time GetLeave()
-	{
-		return _getOut;
 	}
 };
 
@@ -310,38 +266,13 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 	return times;
 }
 
-bool IsMax(Time value, Time max)
-{
-	return value > max;
-}
-
-bool IsMin(Time value, Time min)
-{
-	return value < min;
-}
-
-void FindMinMaxCome(std::vector<Pair> pairs, bool (*Compere)(Time, Time))
-{
-	Time minMax = pairs[0].GetCome();
-	for(size_t i = 1; i < pairs.size(); i++)
-	{
-		if(Compere(pairs[i].GetCome(), minMax))
-		{
-			minMax = pairs[i].GetCome();
-		}
-	}
-
-	minMax.ShowInfo();
-	std::cout << '\n';
-}
-
 void Sort(std::vector<Time>& times)
 {
 	size_t size = times.size();
 	Time temp;
-	for(int i = 0; i < size - 1; i++)
+	for(size_t i = 0; i < size - 1; i++)
 	{
-		for(int j = 0; j < size - i - 1; j++)
+		for(size_t j = 0; j < size - i - 1; j++)
 		{
 			if(times[j] > times[j + 1])
 			{
@@ -358,18 +289,10 @@ void Sort(std::vector<Time>& times)
 
 void FindMaxInMuseum(std::vector<Time>& times)
 {
-	/*for(size_t i = 0; i < times.size(); i++)
-	{
-		times[i].ShowInfo();
-	}*/
 	Sort(times);
-	std::cout << '\n';
-	for(size_t i = 0; i < times.size(); i++)
-	{
-		times[i].ShowInfo();
-	}
 	int countCustomers = 0;
 	int maxCounCustomers = 0;
+	std::vector<Time> interval;
 	for(size_t i = 0; i < times.size(); i++)
 	{
 		if(times[i].GetDescription() == "start")
@@ -387,11 +310,16 @@ void FindMaxInMuseum(std::vector<Time>& times)
 
 		if(countCustomers > maxCounCustomers)
 		{
+			interval.clear();
+			interval.push_back(times[i]);
+			interval.push_back(times[i + 1]);
 			maxCounCustomers = countCustomers;
 		}
 	}
-
-	std::cout << maxCounCustomers << std::endl;
+	for(size_t i = 0; i < interval.size(); i++)
+	{
+		interval[i].ShowInfo();
+	}
 
 }
 
@@ -404,8 +332,7 @@ void ReadFromFile()
 	{
 		std::cout << "Введите имя файла с раширением txt\n";
 		std::cout << "Пример верного файла с расширением: input.txt\n";
-		//std::cin >> input;
-		input = "1.txt";
+		std::cin >> input;
 		if(IsCorrectExtention(input))
 		{
 			outFile.open(input);
@@ -435,12 +362,145 @@ void ReadFromFile()
 	}
 }
 
+bool TryParseToInt(int& number)
+{
+	std::string input;
+	std::cin >> input;
+	try
+	{
+		number = stoi(input);
+		return true;
+	}
+	catch(const std::exception&)
+	{
+		std::cout << "Вводить можно только цыфры!\n\n";
+		return false;
+	}
+
+}
+
+void TryParseToSize_t(std::string name, size_t& number)
+{
+	std::string input;
+	std::cout << name;
+	std::cin >> input;
+	int num;
+	try
+	{
+		num = stoi(input);
+		if(number >= 0)
+		{
+			number = num;
+		}
+	}
+	catch(const std::exception&)
+	{
+		std::cout << "Вводите корректные данные!\n";
+	}
+}
+
+Time GetTimeFromUser(std::string name, std::string description)
+{
+	size_t hour;
+	size_t min;
+	size_t sec;
+	std::cout << name;
+	TryParseToSize_t("Введите часы: ", hour);
+	TryParseToSize_t("Введите минуты: ", min);
+	TryParseToSize_t("Введите секунды: ", sec);
+	return Time(hour, min, sec, description);
+}
+
+void ReadFromKeyboard()
+{
+	std::vector<Time> times;
+	std::string input;
+	Time come;
+	Time leave;
+	bool isEnd = false;
+	while(isEnd == false)
+	{
+		std::cout << "Продолжить ввод ? Введите Y or N: ";
+		std::cin >> input;
+		if(input == "Y")
+		{
+			come = GetTimeFromUser("Введите время прихода:\n", "start");
+			leave = GetTimeFromUser("Введите время ухода:\n", "end");
+			if(come > leave)
+			{
+				std::cout << "Время прихода больше черм ухода!!\n";
+			}
+			else
+			{
+				times.push_back(come);
+				times.push_back(leave);
+			}
+			
+		}
+		else if(input == "N")
+		{
+			isEnd = true;
+			system("pause");
+		}
+		else
+		{
+			std::cout << "Введите Y or N!\n";
+		}
+	}
+	FindMaxInMuseum(times);
+}
+
+void ShowMenu()
+{
+	std::string input;
+	bool isExit = false;
+	int numberOfCommand;
+	while(isExit == false)
+	{
+		std::cout << "Выберете режим\n";
+		std::cout << "\t 1 - Ввод из файла.\n";
+		std::cout << "\t 2 - Ввод с клавиатуры.\n";
+		std::cout << "\t 3 - Выход из программы.\n";
+		if(TryParseToInt(numberOfCommand) == false)
+		{
+			continue;
+		}
+		switch(numberOfCommand)
+		{
+			case 1:
+			{
+				system("cls");
+				std::cout << "Вы выбрали ввод из файла!\n";
+				ReadFromFile();
+				break;
+			}
+			case 2:
+			{
+				system("cls");
+				std::cout << "Вы выбрали ввод с клавиатуры!\n";
+				ReadFromKeyboard();
+				break;
+			}
+			case 3:
+			{
+				isExit = true;
+				std::cout << "Программа закончила свою работу!\n";
+				break;
+			}
+
+			default:
+				std::cout << "Неизвестная команда!\n";
+				break;
+		}
+	}
+}
+
 using namespace std;
 int main()
 {
 	setlocale(LC_ALL, "rus");
 
-	ReadFromFile();
+	ShowMenu();
 	system("pause");
 	return 0;
 }

@@ -144,6 +144,9 @@
   <ItemGroup>
     <Text Include="1.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MaximumInMuseum.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
