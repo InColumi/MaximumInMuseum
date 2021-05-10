@@ -266,6 +266,7 @@ Time StringtoTime(std::string timeInStr, std::string description)
 	{
 		throw "Проверьте данные в файле. Верный формат 00:00:00\n";
 	}
+
 	std::vector<std::size_t> time;
 	size_t number;
 	for(size_t i = 0; i < hourMinuteSecond.size(); i++)
@@ -287,21 +288,20 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 	std::string line;
 	std::vector<Time> times;
 	std::string timeInStr = "";
-	size_t size;
 	Time come;
 	Time leave;
 	while(std::getline(outFile, line))
 	{
-		size = line.size() - 1;
-		for(size_t i = 0; i <= size; i++)
+		for(size_t i = 0; i < line.size(); i++)
 		{
 			if(line[i] == ' ')
 			{
 				come = StringtoTime(timeInStr, "start");
 				timeInStr.clear();
 			}
-			else if(i == size)
+			else if((i + 1 )== line.size())
 			{
+				timeInStr += line[i];
 				leave = StringtoTime(timeInStr, "end");
 				timeInStr.clear();
 			}
@@ -311,6 +311,7 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 			}
 
 		}
+
 		if(come > leave)
 		{
 			throw "Время прихода не может быть больше времени ухода!\n";
