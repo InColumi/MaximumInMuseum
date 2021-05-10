@@ -4,7 +4,6 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include "MaximumInMuseum.h"
 
 class Time
 {
@@ -47,7 +46,7 @@ public:
 		}
 		else
 		{
-			throw "Проблема с созданием Time, проверьте входные параметры!\n";
+			throw "Проблема с созданием Time, проверьте формат входных параметров! Верный формат 00:00:00\n";
 		}
 	}
 
@@ -197,6 +196,27 @@ public:
 	}
 };
 
+bool TryStringTosize_t(std::string input, size_t& number)
+{
+	int countNumer = 0;
+	size_t size = input.size();
+	int charNumber;
+	for(size_t i = 0; i < size; i++)
+	{
+		charNumber = (int)input[i];
+		if(charNumber >= 48 && charNumber <= 57)
+		{
+			countNumer++;
+		}
+	}
+	bool isCorrect = countNumer == size;
+	if(isCorrect)
+	{
+		number = stoi(input);
+	}
+	return isCorrect;
+}
+
 bool IsCorrectExtention(std::string& filename, std::string  extention = ".txt")
 {
 	try
@@ -217,22 +237,49 @@ bool IsCorrectExtention(std::string& filename, std::string  extention = ".txt")
 	return true;
 }
 
-//00:00:00
-Time StringToTime(std::string s, std::string description)
+std::vector<std::string> Split(std::string line, char splitter = ' ')
 {
-	std::string hour = "";
-	hour += s[0];
-	hour += s[1];
+	std::vector<std::string> strings;
+	size_t size = line.size();
+	std::string temp = "";
+	for(size_t i = 0; i < size; i++)
+	{
+		if(splitter == line[i])
+		{
+			strings.push_back(temp);
+			temp = "";
+		}
+		else
+		{
+			temp += line[i];
+		}
+	}
+	strings.push_back(temp);
+	return strings;
+}
 
-	std::string min = "";
-	min += s[3];
-	min += s[4];
-
-	std::string sec = "";
-	sec += s[6];
-	sec += s[7];
-
-	return Time(stoi(hour), stoi(min), stoi(sec), description);
+Time StringtoTime(std::string timeInStr, std::string description)
+{
+	std::vector<std::string> hourMinuteSecond;
+	hourMinuteSecond = Split(timeInStr, ':');
+	if(hourMinuteSecond.size() != 3)
+	{
+		throw "Проверьте данные в файле. Верный формат 00:00:00\n";
+	}
+	std::vector<std::size_t> time;
+	size_t number;
+	for(size_t i = 0; i < hourMinuteSecond.size(); i++)
+	{
+		if(TryStringTosize_t(hourMinuteSecond[i], number))
+		{
+			time.push_back(number);
+		}
+		else
+		{
+			throw "Проверьте данные в файле. Верный формат 00:00:00\n";
+		}
+	}
+	return Time(time[0], time[1], time[2], description);
 }
 
 std::vector<Time> ParseFromFile(std::ifstream& outFile)
@@ -248,12 +295,12 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 		{
 			if(line[i] == ' ')
 			{
-				times.push_back(StringToTime(timeInStr, "start"));
+				times.push_back(StringtoTime(timeInStr, "start"));
 				timeInStr.clear();
 			}
 			else if(i == size)
 			{
-				times.push_back(StringToTime(timeInStr, "end"));
+				times.push_back(StringtoTime(timeInStr, "end"));
 				timeInStr.clear();
 			}
 			else
@@ -362,40 +409,27 @@ void ReadFromFile()
 	}
 }
 
-bool TryParseToInt(int& number)
-{
-	std::string input;
-	std::cin >> input;
-	try
-	{
-		number = stoi(input);
-		return true;
-	}
-	catch(const std::exception&)
-	{
-		std::cout << "Вводить можно только цыфры!\n\n";
-		return false;
-	}
-
-}
-
 void TryParseToSize_t(std::string name, size_t& number)
 {
 	std::string input;
 	std::cout << name;
 	std::cin >> input;
-	int num;
+	size_t num;
 	try
 	{
-		num = stoi(input);
-		if(number >= 0)
+
+		if(TryStringTosize_t(input, num) && num >= 0)
 		{
 			number = num;
 		}
+		else
+		{
+			throw "Вводите корректные данные!\n";
+		}
 	}
-	catch(const std::exception&)
+	catch(const char* str)
 	{
-		std::cout << "Вводите корректные данные!\n";
+		std::cout << str;
 	}
 }
 
@@ -435,7 +469,6 @@ void ReadFromKeyboard()
 				times.push_back(come);
 				times.push_back(leave);
 			}
-			
 		}
 		else if(input == "N")
 		{
@@ -454,15 +487,17 @@ void ShowMenu()
 {
 	std::string input;
 	bool isExit = false;
-	int numberOfCommand;
+	size_t numberOfCommand;
 	while(isExit == false)
 	{
 		std::cout << "Выберете режим\n";
 		std::cout << "\t 1 - Ввод из файла.\n";
 		std::cout << "\t 2 - Ввод с клавиатуры.\n";
 		std::cout << "\t 3 - Выход из программы.\n";
-		if(TryParseToInt(numberOfCommand) == false)
+		std::cin >> input;
+		if(TryStringTosize_t(input, numberOfCommand) == false)
 		{
+			std::cout << "Вводить можно только цифры!\n";
 			continue;
 		}
 		switch(numberOfCommand)
