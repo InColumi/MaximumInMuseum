@@ -288,6 +288,8 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 	std::vector<Time> times;
 	std::string timeInStr = "";
 	size_t size;
+	Time come;
+	Time leave;
 	while(std::getline(outFile, line))
 	{
 		size = line.size() - 1;
@@ -295,18 +297,28 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 		{
 			if(line[i] == ' ')
 			{
-				times.push_back(StringtoTime(timeInStr, "start"));
+				come = StringtoTime(timeInStr, "start");
 				timeInStr.clear();
 			}
 			else if(i == size)
 			{
-				times.push_back(StringtoTime(timeInStr, "end"));
+				leave = StringtoTime(timeInStr, "end");
 				timeInStr.clear();
 			}
 			else
 			{
 				timeInStr += line[i];
 			}
+
+		}
+		if(come > leave)
+		{
+			throw "¬рем€ прихода не может быть больше времени ухода!\n";
+		}
+		else
+		{
+			times.push_back(come);
+			times.push_back(leave);
 		}
 	}
 	outFile.close();
@@ -409,28 +421,31 @@ void ReadFromFile()
 	}
 }
 
-void TryParseToSize_t(std::string name, size_t& number)
+void TryParseToSize_t(std::string name, size_t& number, bool (*compare)(size_t))
 {
 	std::string input;
 	std::cout << name;
 	std::cin >> input;
 	size_t num;
-	try
-	{
 
-		if(TryStringTosize_t(input, num) && num >= 0)
-		{
-			number = num;
-		}
-		else
-		{
-			throw "¬водите корректные данные!\n";
-		}
-	}
-	catch(const char* str)
+	if(TryStringTosize_t(input, num) && compare(num))
 	{
-		std::cout << str;
+		number = num;
 	}
+	else
+	{
+		throw "¬водите корректные данные!\n";
+	}
+}
+
+bool IsHours(size_t hour)
+{
+	return hour >= 0 && hour < 24;
+}
+
+bool IsMinutes(size_t minutes)
+{
+	return minutes >= 0 && minutes < 60;
 }
 
 Time GetTimeFromUser(std::string name, std::string description)
@@ -439,9 +454,22 @@ Time GetTimeFromUser(std::string name, std::string description)
 	size_t min;
 	size_t sec;
 	std::cout << name;
-	TryParseToSize_t("¬ведите часы: ", hour);
-	TryParseToSize_t("¬ведите минуты: ", min);
-	TryParseToSize_t("¬ведите секунды: ", sec);
+	bool isCorrect = false;
+	while(isCorrect == false)
+	{
+		try
+		{
+			TryParseToSize_t("¬ведите часы: ", hour, IsHours);
+			TryParseToSize_t("¬ведите минуты: ", min, IsMinutes);
+			TryParseToSize_t("¬ведите секунды: ", sec, IsMinutes);
+			isCorrect = true;
+		}
+		catch(const char* str)
+		{
+			std::cout << str;
+		}
+	}
+
 	return Time(hour, min, sec, description);
 }
 
@@ -458,16 +486,23 @@ void ReadFromKeyboard()
 		std::cin >> input;
 		if(input == "Y")
 		{
-			come = GetTimeFromUser("¬ведите врем€ прихода:\n", "start");
-			leave = GetTimeFromUser("¬ведите врем€ ухода:\n", "end");
-			if(come > leave)
+			try
 			{
-				std::cout << "¬рем€ прихода больше черм ухода!!\n";
+				come = GetTimeFromUser("¬ведите врем€ прихода:\n", "start");
+				leave = GetTimeFromUser("¬ведите врем€ ухода:\n", "end");
+				if(come > leave)
+				{
+					std::cout << "¬рем€ прихода больше черм ухода!!\n";
+				}
+				else
+				{
+					times.push_back(come);
+					times.push_back(leave);
+				}
 			}
-			else
+			catch(const char* str)
 			{
-				times.push_back(come);
-				times.push_back(leave);
+				std::cout << str;
 			}
 		}
 		else if(input == "N")
@@ -480,7 +515,10 @@ void ReadFromKeyboard()
 			std::cout << "¬ведите Y or N!\n";
 		}
 	}
-	FindMaxInMuseum(times);
+	if(times.empty() == false)
+	{
+		FindMaxInMuseum(times);
+	}
 }
 
 void ShowMenu()
