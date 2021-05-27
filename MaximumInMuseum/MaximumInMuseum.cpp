@@ -4,30 +4,40 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+using namespace std;
 
+//класс для работы с временем
 class Time
 {
 private:
 	size_t _hour;
 	size_t _minute;
 	size_t _second;
-	std::string _description; // start or end
+	string _description; // start or end
 
+	//проверка корректности часов
+	//принимает час
+	//возвращает лог.значение
 	bool IsCorrectHours(size_t hour)
 	{
 		return hour >= 0 && hour < 24;
 	}
 
-	bool IsCorrectMinutes(size_t minutes)
+	//проверка корректности минут
+	//принимает минуты
+	//возвращает лог.значение
+	bool IsCorrectMinutesOrSeconds(size_t time)
 	{
-		return minutes >= 0 && minutes < 60;
+		return time >= 0 && time < 60;
 	}
 
-	void ShowZeroIf(size_t value)
+	//добавление нуля при его отсутствии в шаблоне
+	//принимает значение
+	void ShowZeroIfMoreThenNine(size_t value)
 	{
 		if(value <= 9)
 		{
-			std::cout << '0';
+			cout << '0';
 		}
 	}
 
@@ -35,9 +45,10 @@ public:
 	Time(): _hour(size_t()), _minute(size_t()), _second(size_t())
 	{}
 
-	Time(size_t hour, size_t minute, size_t second, std::string description)
+	Time(size_t hour, size_t minute, size_t second, string description)
 	{
-		if(IsCorrectHours(hour) && IsCorrectMinutes(minute) && IsCorrectMinutes(second))
+		//проверка корректности времени
+		if(IsCorrectHours(hour) && IsCorrectMinutesOrSeconds(minute) && IsCorrectMinutesOrSeconds(second))
 		{
 			_hour = hour;
 			_minute = minute;
@@ -50,6 +61,7 @@ public:
 		}
 	}
 
+	//перегрузка операторов
 	bool operator == (Time t)
 	{
 		return _hour == t._hour && _minute == t._minute && _second == t._second;
@@ -60,126 +72,45 @@ public:
 		return _hour != t._hour || _minute != t._minute || _second != t._second;
 	}
 
+
 	bool operator > (Time t)
 	{
-		if(_hour > t._hour)
-		{
-			return true;
-		}
-		else if(_hour < t._hour)
-		{
-			return false;
-		}
-		else
-		{
-			if(_minute > t._minute)
-			{
-				return true;
-			}
-			else if(_minute < t._minute)
-			{
-				return false;
-			}
-			else
-			{
-				return _second > t._second;
-			}
-		}
+		//проверка корректности часов, минут, секунд
+		return (_hour == t._hour) ? (_minute == t._minute) ? _second > t._second : _minute > t._minute : _hour > t._hour;
 	}
 
 	bool operator < (Time t)
 	{
-		if(_hour < t._hour)
-		{
-			return true;
-		}
-		else if(_hour > t._hour)
-		{
-			return false;
-		}
-		else
-		{
-			if(_minute < t._minute)
-			{
-				return true;
-			}
-			else if(_minute > t._minute)
-			{
-				return false;
-			}
-			else
-			{
-				return _second < t._second;
-			}
-		}
+		//проверка корректности часов, минут, секунд
+		return (_hour == t._hour) ? (_minute == t._minute) ? _second < t._second : _minute < t._minute : _hour < t._hour;
 	}
 
 	bool operator <= (Time t)
 	{
-		if(_hour < t._hour)
-		{
-			return true;
-		}
-		else if(_hour > t._hour)
-		{
-			return false;
-		}
-		else
-		{
-			if(_minute < t._minute)
-			{
-				return true;
-			}
-			else if(_minute > t._minute)
-			{
-				return false;
-			}
-			else
-			{
-				return _second <= t._second;
-			}
-		}
+		//проверка корректности часов, минут, секунд
+		return (_hour == t._hour) ? (_minute == t._minute) ? _second <= t._second : _minute < t._minute : _hour < t._hour;
 	}
 
 	bool operator >= (Time t)
 	{
-		if(_hour > t._hour)
-		{
-			return true;
-		}
-		else if(_hour < t._hour)
-		{
-			return false;
-		}
-		else
-		{
-			if(_minute > t._minute)
-			{
-				return true;
-			}
-			else if(_minute < t._minute)
-			{
-				return false;
-			}
-			else
-			{
-				return _second >= t._second;
-			}
-		}
+		//проверка корректности часов, минут, секунд
+		return (_hour == t._hour) ? (_minute == t._minute) ? _second >= t._second : _minute > t._minute : _hour > t._hour;
 	}
 
+	//вывод времени
 	void ShowInfo()
 	{
-		ShowZeroIf(_hour);
-		std::cout << _hour;
-		std::cout << ":";
-		ShowZeroIf(_minute);
-		std::cout << _minute;
-		std::cout << ":";
-		ShowZeroIf(_second);
-		std::cout << _second << std::endl;
+		//добавление нуля, если его нет
+		ShowZeroIfMoreThenNine(_hour);
+		cout << _hour;
+		cout << ":";
+		ShowZeroIfMoreThenNine(_minute);
+		cout << _minute;
+		cout << ":";
+		ShowZeroIfMoreThenNine(_second);
+		cout << _second << endl;
 	}
-
+	//получение времени
 	size_t GetHour()
 	{
 		return _hour;
@@ -190,13 +121,16 @@ public:
 		return _minute;
 	}
 
-	std::string GetDescription()
+	string GetDescription()
 	{
 		return _description;
 	}
 };
 
-bool TryStringTosize_t(std::string input, size_t& number)
+//преобразование string в size_t
+//принимает строку и число
+//возвращает лог.значение
+bool TryStringTosize_t(string input, size_t& number)
 {
 	int countNumer = 0;
 	size_t size = input.size();
@@ -217,7 +151,10 @@ bool TryStringTosize_t(std::string input, size_t& number)
 	return isCorrect;
 }
 
-bool IsCorrectExtention(std::string& filename, std::string  extention = ".txt")
+//проверка правильности расширения файла
+//принимает имя файла и расширение
+//возвращает лог.значение проверки
+bool IsCorrectExtention(string& filename, string  extention = ".txt")
 {
 	try
 	{
@@ -229,19 +166,20 @@ bool IsCorrectExtention(std::string& filename, std::string  extention = ".txt")
 			}
 		}
 	}
-	catch(const std::exception&)
+	catch(std::exception err)
 	{
-		return false;
+		std::cout << "Wrong extention" << std::endl;
 	}
 
 	return true;
 }
 
-std::vector<std::string> Split(std::string line, char splitter = ' ')
+//разделение строки времени
+vector<string> Split(string line, char splitter = ' ')
 {
-	std::vector<std::string> strings;
+	vector<string> strings;
 	size_t size = line.size();
-	std::string temp = "";
+	string temp = "";
 	for(size_t i = 0; i < size; i++)
 	{
 		if(splitter == line[i])
@@ -258,19 +196,24 @@ std::vector<std::string> Split(std::string line, char splitter = ' ')
 	return strings;
 }
 
-Time StringtoTime(std::string timeInStr, std::string description)
+//обработка строки со временем
+//принимает время
+//возвращает разделенное время: часы, минуты, секунды
+Time StringtoTime(string timeInStr, string description)
 {
-	std::vector<std::string> hourMinuteSecond;
+	vector<string> hourMinuteSecond;
 	hourMinuteSecond = Split(timeInStr, ':');
+	//первоначальная проверка соответствия шаблону 
 	if(hourMinuteSecond.size() != 3)
 	{
 		throw "Проверьте данные в файле. Верный формат 00:00:00\n";
 	}
 
-	std::vector<std::size_t> time;
+	vector<size_t> time;
 	size_t number;
 	for(size_t i = 0; i < hourMinuteSecond.size(); i++)
 	{
+		//проверка соответствия шаблону
 		if(TryStringTosize_t(hourMinuteSecond[i], number))
 		{
 			time.push_back(number);
@@ -283,14 +226,18 @@ Time StringtoTime(std::string timeInStr, std::string description)
 	return Time(time[0], time[1], time[2], description);
 }
 
-std::vector<Time> ParseFromFile(std::ifstream& outFile)
+//работа с файлом
+//принимает объект файла
+//возвращает вектор времени прихода,ухода
+vector<Time> ParseFromFile(ifstream& outFile)
 {
-	std::string line;
-	std::vector<Time> times;
-	std::string timeInStr = "";
+	string line;
+	vector<Time> times;
+	string timeInStr = "";
 	Time come;
 	Time leave;
-	while(std::getline(outFile, line))
+	//чтение строк из файла
+	while(getline(outFile, line))
 	{
 		for(size_t i = 0; i < line.size(); i++)
 		{
@@ -299,7 +246,7 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 				come = StringtoTime(timeInStr, "start");
 				timeInStr.clear();
 			}
-			else if((i + 1 )== line.size())
+			else if((i + 1) == line.size())
 			{
 				timeInStr += line[i];
 				leave = StringtoTime(timeInStr, "end");
@@ -311,11 +258,12 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 			}
 
 		}
-
+		//проверка корректности времени прихода,ухода
 		if(come > leave)
 		{
 			throw "Время прихода не может быть больше времени ухода!\n";
 		}
+		//добавление времени прихода,ухода
 		else
 		{
 			times.push_back(come);
@@ -326,7 +274,9 @@ std::vector<Time> ParseFromFile(std::ifstream& outFile)
 	return times;
 }
 
-void Sort(std::vector<Time>& times)
+//сортировка времени для обработки
+//принимает вектор времени
+void Sort(vector<Time>& times)
 {
 	size_t size = times.size();
 	Time temp;
@@ -336,8 +286,6 @@ void Sort(std::vector<Time>& times)
 		{
 			if(times[j] > times[j + 1])
 			{
-
-
 				// меняем элементы местами
 				temp = times[j];
 				times[j] = times[j + 1];
@@ -347,12 +295,13 @@ void Sort(std::vector<Time>& times)
 	}
 }
 
-void FindMaxInMuseum(std::vector<Time>& times)
+//поиск интервала с макс.числом людей
+void FindMaxInMuseum(vector<Time>& times)
 {
 	Sort(times);
 	int countCustomers = 0;
 	int maxCounCustomers = 0;
-	std::vector<Time> interval;
+	vector<Time> interval;
 	for(size_t i = 0; i < times.size(); i++)
 	{
 		if(times[i].GetDescription() == "start")
@@ -365,9 +314,10 @@ void FindMaxInMuseum(std::vector<Time>& times)
 		}
 		else
 		{
-			throw "В описании может быть start or end!\n";
+			throw "В описании возможны start или end!\n";
 		}
 
+		//добавление нового числа макс.людей
 		if(countCustomers > maxCounCustomers)
 		{
 			interval.clear();
@@ -376,6 +326,8 @@ void FindMaxInMuseum(std::vector<Time>& times)
 			maxCounCustomers = countCustomers;
 		}
 	}
+	cout << "Интервал с максимальным количеством посетителей\n";
+	//вывод интервала времени с макс.числом людей
 	for(size_t i = 0; i < interval.size(); i++)
 	{
 		interval[i].ShowInfo();
@@ -383,50 +335,56 @@ void FindMaxInMuseum(std::vector<Time>& times)
 
 }
 
+//чтение из файла
 void ReadFromFile()
 {
-	std::string input;
+	string input;
 	bool isCorrect = false;
-	std::ifstream outFile;
+	ifstream outFile;
 	while(isCorrect == false)
 	{
-		std::cout << "Введите имя файла с раширением txt\n";
-		std::cout << "Пример верного файла с расширением: input.txt\n";
-		std::cin >> input;
+		cout << "Введите имя файла с раширением txt" << endl;
+		cout << "Пример верного файла с расширением: input.txt" << endl;
+		cin >> input;
+		//проверка расширения файла
 		if(IsCorrectExtention(input))
 		{
 			outFile.open(input);
+			//проверка наличия файла
 			if(outFile.is_open())
 			{
-				system("cls");
+				//чтение файла
+				//поиск интервала с макс.числом
 				try
 				{
-					std::vector<Time> times = ParseFromFile(outFile);
+					vector<Time> times = ParseFromFile(outFile);
 					FindMaxInMuseum(times);
 				}
 				catch(const char* str)
 				{
-					std::cout << str;
+					cout << str;
 				}
 				isCorrect = true;
 			}
 			else
 			{
-				std::cout << "Такого файла не сущестует!\n";
+				cout << "Такого файла не сущестует!" << endl;
 			}
 		}
 		else
 		{
-			std::cout << "Неверное расширение!\n";
+			cout << "Неверное расширение!" << endl;
 		}
 	}
 }
 
-void TryParseToSize_t(std::string name, size_t& number, bool (*compare)(size_t))
+//проверка корректности ввода данных
+//принимает строку, число и лог.принадлежнсть числа
+void TryParseToSize_t(string name, size_t& number, bool (*compare)(size_t))
 {
-	std::string input;
-	std::cout << name;
-	std::cin >> input;
+	string input;
+	cout << name;
+	cin >> input;
 	size_t num;
 
 	if(TryStringTosize_t(input, num) && compare(num))
@@ -439,22 +397,25 @@ void TryParseToSize_t(std::string name, size_t& number, bool (*compare)(size_t))
 	}
 }
 
+//проверка часов
 bool IsHours(size_t hour)
 {
 	return hour >= 0 && hour < 24;
 }
 
+//проверка минут, секунд
 bool IsMinutes(size_t minutes)
 {
 	return minutes >= 0 && minutes < 60;
 }
 
-Time GetTimeFromUser(std::string name, std::string description)
+//ввод времени пользователем
+Time GetTimeFromUser(string name, string description)
 {
 	size_t hour;
 	size_t min;
 	size_t sec;
-	std::cout << name;
+	cout << name;
 	bool isCorrect = false;
 	while(isCorrect == false)
 	{
@@ -467,53 +428,51 @@ Time GetTimeFromUser(std::string name, std::string description)
 		}
 		catch(const char* str)
 		{
-			std::cout << str;
+			cout << str;
 		}
 	}
 
 	return Time(hour, min, sec, description);
 }
 
+//ввод с клавиатуры
 void ReadFromKeyboard()
 {
-	std::vector<Time> times;
-	std::string input;
+	vector<Time> times;
+	string input;
 	Time come;
 	Time leave;
 	bool isEnd = false;
 	while(isEnd == false)
 	{
-		std::cout << "Продолжить ввод ? Введите Y or N: ";
-		std::cin >> input;
-		if(input == "Y")
+		cout << "Продолжить ввод ? Введите Y or N: ";
+		cin >> input;
+		//проверка условия остановки ввода
+		if(input == "Y" || input == "y")
 		{
-			try
+			come = GetTimeFromUser("Введите время прихода:\n", "start");
+			leave = GetTimeFromUser("Введите время ухода:\n", "end");
+			//проверка корректности величины времени
+			if(come > leave)
 			{
-				come = GetTimeFromUser("Введите время прихода:\n", "start");
-				leave = GetTimeFromUser("Введите время ухода:\n", "end");
-				if(come > leave)
-				{
-					std::cout << "Время прихода больше черм ухода!!\n";
-				}
-				else
-				{
-					times.push_back(come);
-					times.push_back(leave);
-				}
+				cout << "Время прихода больше, чем ухода!" << endl;
 			}
-			catch(const char* str)
+			//добавление времени прихода, ухода
+			else
 			{
-				std::cout << str;
+				times.push_back(come);
+				times.push_back(leave);
 			}
 		}
-		else if(input == "N")
+
+		//проверка условия остановки ввода
+		else if(input == "N" || input == "n")
 		{
 			isEnd = true;
-			system("pause");
 		}
 		else
 		{
-			std::cout << "Введите Y or N!\n";
+			cout << "Введите Y or N!" << endl;
 		}
 	}
 	if(times.empty() == false)
@@ -522,59 +481,71 @@ void ReadFromKeyboard()
 	}
 }
 
-void ShowMenu()
+//ввод и вывод меню
+int GetModeFromConsole()
 {
-	std::string input;
-	bool isExit = false;
-	size_t numberOfCommand;
-	while(isExit == false)
+	string mode = "";
+	cout << "\nВыберите пункт меню:" << endl;
+	cout << "1. Чтение из файла" << endl;
+	cout << "2. Ввод с клавиатуры" << endl;
+	cout << "3. Выход" << endl;
+	int exit = 0;
+	while(exit != 1)
 	{
-		std::cout << "Выберете режим\n";
-		std::cout << "\t 1 - Ввод из файла.\n";
-		std::cout << "\t 2 - Ввод с клавиатуры.\n";
-		std::cout << "\t 3 - Выход из программы.\n";
-		std::cin >> input;
-		if(TryStringTosize_t(input, numberOfCommand) == false)
+		cin >> mode;
+		//проверка ввода номера меню
+		if((mode == "1") || (mode == "2") || (mode == "3"))
 		{
-			std::cout << "Вводить можно только цифры!\n";
-			continue;
+			return atoi(mode.c_str());
 		}
-		switch(numberOfCommand)
+		else
 		{
-			case 1:
-			{
-				system("cls");
-				std::cout << "Вы выбрали ввод из файла!\n";
-				ReadFromFile();
-				break;
-			}
-			case 2:
-			{
-				system("cls");
-				std::cout << "Вы выбрали ввод с клавиатуры!\n";
-				ReadFromKeyboard();
-				break;
-			}
-			case 3:
-			{
-				isExit = true;
-				std::cout << "Программа закончила свою работу!\n";
-				break;
-			}
-
-			default:
-				std::cout << "Неизвестная команда!\n";
-				break;
+			cout << "Введите правильный режим" << endl;
 		}
 	}
 }
 
-using namespace std;
+//функция выбора меню
+void Menu()
+{
+	int mode = GetModeFromConsole();
+	try
+	{
+		switch(mode)
+		{
+			case 1:
+			{
+				ReadFromFile();
+				Menu();
+				break;
+			}
+			case 2:
+			{
+				ReadFromKeyboard();
+				Menu();
+				break;
+			}
+			case 3:
+			{
+				cout << "До свидания!" << endl;
+				return;
+			}
+
+			default:
+				cout << "Неизвестная команда!\n";
+				break;
+		}
+	}
+	catch(const char* message)
+	{
+		cout << message << '\n';
+	}
+}
+
 int main()
 {
 	setlocale(LC_ALL, "rus");
-
-	ShowMenu();
-	system("pause");
+	//выбор меню
+	Menu();
 	return 0;
 }
