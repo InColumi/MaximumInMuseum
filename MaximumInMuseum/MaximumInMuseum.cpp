@@ -197,7 +197,7 @@ bool IsCorrectExtention(string& filename, string  extention = ".txt")
 			}
 		}
 	}
-	catch(std::exception err)
+	catch(std::out_of_range)
 	{
 		std::cout << "Неверное расширение файла" << std::endl;
 	}
