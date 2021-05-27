@@ -310,7 +310,8 @@ void FindMaxInMuseum(vector<Time>& times)
 	Sort(times);
 	int countCustomers = 0;
 	int maxCounCustomers = 0;
-	vector<Time> interval;
+	Time start;
+	Time end;
 	for(size_t i = 0; i < times.size(); i++)
 	{
 		if(times[i].GetDescription() == "start")
@@ -329,24 +330,25 @@ void FindMaxInMuseum(vector<Time>& times)
 		//добавление нового числа макс.людей
 		if(countCustomers > maxCounCustomers)
 		{
-			interval.clear();
-			interval.push_back(times[i]);
-			interval.push_back(times[i + 1]);
+			start = times[i];
+			end = times[i + 1];
 			maxCounCustomers = countCustomers;
 		}
 	}
 	cout << "Интервал с максимальным количеством посетителей\n";
 	//вывод интервала времени с макс.числом людей
-	for(size_t i = 0; i < interval.size(); i++)
-	{
-		interval[i].ShowInfo();
-	}
+
+	start.ShowInfo();
+	end.ShowInfo();
+
 	cout << "Находились люди: ";
-	for(size_t i = 0; i < interval.size() - 1; i++)
+	for(size_t i = 0; i < times.size(); i++)
 	{
-		cout << interval[i].GetId() << ',';
+		if(times[i] >= end && times[i].GetDescription() == "end")
+		{
+			cout << times[i].GetId() << ',';
+		}
 	}
-	cout << interval[interval.size() - 1].GetId() << '\n';
 }
 
 //чтение из файла
