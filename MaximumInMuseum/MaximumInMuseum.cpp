@@ -110,7 +110,7 @@ public:
 		cout << _minute;
 		cout << ":";
 		ShowZeroIfMoreThenNine(_second);
-		cout << _second << endl;
+		cout << _second << "\n";
 	}
 	//получение времени
 	size_t GetHour()
@@ -131,6 +131,30 @@ public:
 	string GetDescription()
 	{
 		return _description;
+	}
+};
+
+class Pair
+{
+
+private:
+	Time _start;
+	Time _end;
+public:
+	Pair():_start(Time()), _end(Time())
+	{}
+
+	Pair(Time start, Time end):_start(start), _end(end)
+	{}
+
+	Time GetStart()
+	{
+		return _start;
+	}
+
+	Time GetEnd()
+	{
+		return _end;
 	}
 };
 
@@ -236,7 +260,7 @@ Time StringtoTime(string timeInStr, string description, size_t id)
 //работа с файлом
 //принимает объект файла
 //возвращает вектор времени прихода,ухода
-vector<Time> ParseFromFile(ifstream& outFile)
+vector<Time> ParseFromFile(ifstream& outFile, vector<Pair>& pairs)
 {
 	vector<Time> times;
 	string line;
@@ -276,6 +300,8 @@ vector<Time> ParseFromFile(ifstream& outFile)
 		{
 			times.push_back(come);
 			times.push_back(leave);
+			size_t size = times.size();
+			pairs.push_back(Pair(times[size - 2], times[size - 1]));
 		}
 		countCustomers++;
 	}
@@ -305,7 +331,7 @@ void Sort(vector<Time>& times)
 }
 
 //поиск интервала с макс.числом людей
-void FindMaxInMuseum(vector<Time>& times)
+void FindMaxInMuseum(vector<Time>& times, vector<Pair>& pairs)
 {
 	Sort(times);
 	int countCustomers = 0;
@@ -335,18 +361,23 @@ void FindMaxInMuseum(vector<Time>& times)
 			maxCounCustomers = countCustomers;
 		}
 	}
+
 	cout << "»нтервал с максимальным количеством посетителей\n";
 	//вывод интервала времени с макс.числом людей
-
 	start.ShowInfo();
 	end.ShowInfo();
 
 	cout << "Ќаходились люди: ";
-	for(size_t i = 0; i < times.size(); i++)
+	Time startInPair;
+	Time endInPair;
+	for(size_t i = 0; i < pairs.size(); i++)
 	{
-		if(times[i] >= end && times[i].GetDescription() == "end")
+		startInPair = pairs[i].GetStart();
+		endInPair = pairs[i].GetEnd();
+		if(startInPair.GetDescription() == "start" && startInPair <= start &&
+		   endInPair.GetDescription() == "end" && endInPair >= end)
 		{
-			cout << times[i].GetId() << ',';
+			cout << endInPair.GetId() << ',';
 		}
 	}
 }
@@ -373,8 +404,9 @@ void ReadFromFile()
 				//поиск интервала с макс.числом
 				try
 				{
-					vector<Time> times = ParseFromFile(outFile);
-					FindMaxInMuseum(times);
+					vector<Pair> pairs;
+					vector<Time> times = ParseFromFile(outFile, pairs);
+					FindMaxInMuseum(times, pairs);
 				}
 				catch(const char* str)
 				{
@@ -455,6 +487,7 @@ Time GetTimeFromUser(string name, string description, size_t id)
 void ReadFromKeyboard()
 {
 	vector<Time> times;
+	vector<Pair> pairs;
 	string input;
 	Time come;
 	Time leave;
@@ -479,6 +512,8 @@ void ReadFromKeyboard()
 			{
 				times.push_back(come);
 				times.push_back(leave);
+				size_t size = times.size();
+				pairs.push_back(Pair(times[size - 2], times[size - 1]));
 				idCustomer++;
 			}
 		}
@@ -494,7 +529,7 @@ void ReadFromKeyboard()
 	}
 	if(times.empty() == false)
 	{
-		FindMaxInMuseum(times);
+		FindMaxInMuseum(times, pairs);
 	}
 }
 
