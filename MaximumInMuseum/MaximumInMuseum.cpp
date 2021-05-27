@@ -101,27 +101,22 @@ public:
 
 	bool operator > (Time t)
 	{
-		CompareTemplate(t, &Time::Greater);
-		//проверка корректности часов, минут, секунд
-		return (_hour == t._hour) ? (_minute == t._minute) ? _second > t._second : _minute > t._minute : _hour > t._hour;
+		return CompareTemplate(t, &Time::Greater);
 	}
 
 	bool operator < (Time t)
 	{
-		//проверка корректности часов, минут, секунд
-		return (_hour == t._hour) ? (_minute == t._minute) ? _second < t._second : _minute < t._minute : _hour < t._hour;
+		return CompareTemplate(t, &Time::Less);
 	}
 
 	bool operator <= (Time t)
 	{
-		//проверка корректности часов, минут, секунд
-		return (_hour == t._hour) ? (_minute == t._minute) ? _second <= t._second : _minute < t._minute : _hour < t._hour;
+		return CompareTemplate(t, &Time::LessThanOrEqual);
 	}
 
 	bool operator >= (Time t)
 	{
-		//проверка корректности часов, минут, секунд
-		return (_hour == t._hour) ? (_minute == t._minute) ? _second >= t._second : _minute > t._minute : _hour > t._hour;
+		return CompareTemplate(t, &Time::GreaterThanOrEqual);
 	}
 
 	//вывод времени
