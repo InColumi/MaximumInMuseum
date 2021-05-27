@@ -42,6 +42,31 @@ private:
 		}
 	}
 
+	bool Greater(size_t a, size_t b)
+	{
+		return a > b;
+	}
+
+	bool Less(size_t a, size_t b)
+	{
+		return a < b;
+	}
+
+	bool GreaterThanOrEqual(size_t a, size_t b)
+	{
+		return a >= b;
+	}
+
+	bool  LessThanOrEqual(size_t a, size_t b)
+	{
+		return a <= b;
+	}
+
+	bool CompareTemplate(Time t, bool (Time::*f)(size_t, size_t ))
+	{
+		return (_hour == t._hour) ? (_minute == t._minute) ? (this->*f)(_second, t._second) : (this->*f)(_minute, t._minute) : (this->*f)(_hour, t._hour);
+	}
+
 public:
 	Time(): _hour(size_t()), _minute(size_t()), _second(size_t()), _id(size_t())
 	{}
@@ -74,9 +99,9 @@ public:
 		return _hour != t._hour || _minute != t._minute || _second != t._second;
 	}
 
-
 	bool operator > (Time t)
 	{
+		CompareTemplate(t, &Time::Greater);
 		//проверка корректности часов, минут, секунд
 		return (_hour == t._hour) ? (_minute == t._minute) ? _second > t._second : _minute > t._minute : _hour > t._hour;
 	}
