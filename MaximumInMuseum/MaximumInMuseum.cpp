@@ -13,6 +13,7 @@ private:
 	size_t _hour;
 	size_t _minute;
 	size_t _second;
+	size_t _id;
 	string _description; // start or end
 
 	//проверка корректности часов
@@ -42,10 +43,10 @@ private:
 	}
 
 public:
-	Time(): _hour(size_t()), _minute(size_t()), _second(size_t())
+	Time(): _hour(size_t()), _minute(size_t()), _second(size_t()), _id(size_t())
 	{}
 
-	Time(size_t hour, size_t minute, size_t second, string description)
+	Time(size_t hour, size_t minute, size_t second, string description, size_t id)
 	{
 		//проверка корректности времени
 		if(IsCorrectHours(hour) && IsCorrectMinutesOrSeconds(minute) && IsCorrectMinutesOrSeconds(second))
@@ -54,6 +55,7 @@ public:
 			_minute = minute;
 			_second = second;
 			_description = description;
+			_id = id;
 		}
 		else
 		{
@@ -121,6 +123,11 @@ public:
 		return _minute;
 	}
 
+	size_t GetId()
+	{
+		return _id;
+	}
+
 	string GetDescription()
 	{
 		return _description;
@@ -168,7 +175,7 @@ bool IsCorrectExtention(string& filename, string  extention = ".txt")
 	}
 	catch(std::exception err)
 	{
-		std::cout << "Wrong extention" << std::endl;
+		std::cout << "Неверное расширение файла" << std::endl;
 	}
 
 	return true;
@@ -199,7 +206,7 @@ vector<string> Split(string line, char splitter = ' ')
 //обработка строки со временем
 //принимает время
 //возвращает разделенное время: часы, минуты, секунды
-Time StringtoTime(string timeInStr, string description)
+Time StringtoTime(string timeInStr, string description, size_t id)
 {
 	vector<string> hourMinuteSecond;
 	hourMinuteSecond = Split(timeInStr, ':');
@@ -223,7 +230,7 @@ Time StringtoTime(string timeInStr, string description)
 			throw "Проверьте данные в файле. Верный формат 00:00:00\n";
 		}
 	}
-	return Time(time[0], time[1], time[2], description);
+	return Time(time[0], time[1], time[2], description, id);
 }
 
 //работа с файлом
@@ -231,11 +238,12 @@ Time StringtoTime(string timeInStr, string description)
 //возвращает вектор времени прихода,ухода
 vector<Time> ParseFromFile(ifstream& outFile)
 {
-	string line;
 	vector<Time> times;
+	string line;
 	string timeInStr = "";
 	Time come;
 	Time leave;
+	size_t countCustomers = 1;
 	//чтение строк из файла
 	while(getline(outFile, line))
 	{
@@ -243,13 +251,13 @@ vector<Time> ParseFromFile(ifstream& outFile)
 		{
 			if(line[i] == ' ')
 			{
-				come = StringtoTime(timeInStr, "start");
+				come = StringtoTime(timeInStr, "start", countCustomers);
 				timeInStr.clear();
 			}
 			else if((i + 1) == line.size())
 			{
 				timeInStr += line[i];
-				leave = StringtoTime(timeInStr, "end");
+				leave = StringtoTime(timeInStr, "end", countCustomers);
 				timeInStr.clear();
 			}
 			else
@@ -269,6 +277,7 @@ vector<Time> ParseFromFile(ifstream& outFile)
 			times.push_back(come);
 			times.push_back(leave);
 		}
+		countCustomers++;
 	}
 	outFile.close();
 	return times;
@@ -332,7 +341,12 @@ void FindMaxInMuseum(vector<Time>& times)
 	{
 		interval[i].ShowInfo();
 	}
-
+	cout << "Находились люди: ";
+	for(size_t i = 0; i < interval.size() - 1; i++)
+	{
+		cout << interval[i].GetId() << ',';
+	}
+	cout << interval[interval.size() - 1].GetId() << '\n';
 }
 
 //чтение из файла
@@ -393,7 +407,7 @@ void TryParseToSize_t(string name, size_t& number, bool (*compare)(size_t))
 	}
 	else
 	{
-		throw "Вводите корректные данные!\n";
+		throw "Ошибка конвертации строки в число!";
 	}
 }
 
@@ -410,7 +424,7 @@ bool IsMinutes(size_t minutes)
 }
 
 //ввод времени пользователем
-Time GetTimeFromUser(string name, string description)
+Time GetTimeFromUser(string name, string description, size_t id)
 {
 	size_t hour;
 	size_t min;
@@ -432,7 +446,7 @@ Time GetTimeFromUser(string name, string description)
 		}
 	}
 
-	return Time(hour, min, sec, description);
+	return Time(hour, min, sec, description, id);
 }
 
 //ввод с клавиатуры
@@ -442,6 +456,7 @@ void ReadFromKeyboard()
 	string input;
 	Time come;
 	Time leave;
+	size_t idCustomer = 1;
 	bool isEnd = false;
 	while(isEnd == false)
 	{
@@ -450,8 +465,8 @@ void ReadFromKeyboard()
 		//проверка условия остановки ввода
 		if(input == "Y" || input == "y")
 		{
-			come = GetTimeFromUser("Введите время прихода:\n", "start");
-			leave = GetTimeFromUser("Введите время ухода:\n", "end");
+			come = GetTimeFromUser("Введите время прихода:\n", "start", idCustomer);
+			leave = GetTimeFromUser("Введите время ухода:\n", "end", idCustomer);
 			//проверка корректности величины времени
 			if(come > leave)
 			{
@@ -462,9 +477,9 @@ void ReadFromKeyboard()
 			{
 				times.push_back(come);
 				times.push_back(leave);
+				idCustomer++;
 			}
 		}
-
 		//проверка условия остановки ввода
 		else if(input == "N" || input == "n")
 		{
